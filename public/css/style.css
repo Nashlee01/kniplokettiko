@@ -267,3 +267,323 @@ body {
 small {
     color: #dc2626;
 }
+
+
+
+.dashboard-page {
+    min-height: 100vh;
+    display: flex;
+    background: #f5f8ff;
+}
+
+.sidebar {
+    width: 260px;
+    background: #07162d;
+    color: white;
+    padding: 30px;
+}
+
+.sidebar h2 {
+    margin-bottom: 35px;
+}
+
+.sidebar a,
+.sidebar button {
+    display: block;
+    width: 100%;
+    color: white;
+    background: transparent;
+    border: none;
+    text-align: left;
+    text-decoration: none;
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sidebar a.active,
+.sidebar a:hover,
+.sidebar button:hover {
+    background: #2563eb;
+}
+
+.dashboard-content {
+    flex: 1;
+    padding: 45px;
+}
+
+.info-card {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 14px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.info-icon {
+    width: 65px;
+    height: 65px;
+    background: #dbeafe;
+    color: #2563eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card,
+.form-card {
+    background: white;
+    border: 1px solid #dbeafe;
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.right-button {
+    float: right;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    clear: both;
+}
+
+th,
+td {
+    padding: 18px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+th {
+    color: #334155;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.status {
+    background: #dcfce7;
+    color: #166534;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.actions a,
+.actions button {
+    border: 1px solid #dbeafe;
+    background: white;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.form-page {
+    min-height: 100vh;
+    background: #f5f8ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.form-card {
+    width: 520px;
+}
+
+label {
+    display: block;
+    margin-top: 18px;
+    font-weight: bold;
+}
+
+select,
+input,
+textarea {
+    width: 100%;
+    padding: 14px;
+    margin-top: 8px;
+    border: 1px solid #dbeafe;
+    border-radius: 9px;
+}
+
+textarea {
+    min-height: 90px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 14px 22px;
+    border-radius: 9px;
+    text-decoration: none;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.primary {
+    background: #2563eb;
+    color: white;
+}
+
+.cancel {
+    background: white;
+    border: 1px solid #dbeafe;
+    color: #0f172a;
+}
+
+.success {
+    background: #dcfce7;
+    color: #166534;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.details-card p {
+    font-size: 17px;
+    margin: 14px 0;
+}
+
+
+
+.sidebar {
+    position: relative;
+}
+
+.user-box {
+    position: absolute;
+    left: 25px;
+    right: 25px;
+    bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #1e3a5f;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: white;
+}
+
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    background: #2563eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.user-box strong {
+    display: block;
+    font-size: 14px;
+}
+
+.user-box small {
+    display: block;
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+
+
+/* ==========================================
+   Sidebar gebruikerskaart medewerker
+========================================== */
+
+.sidebar {
+    position: relative;
+}
+
+.sidebar-user {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 25px;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 14px;
+    border-radius: 14px;
+
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: white;
+}
+
+.sidebar-avatar {
+    width: 46px;
+    height: 46px;
+
+    border-radius: 50%;
+    background: #2563eb;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 19px;
+    font-weight: bold;
+}
+
+.sidebar-user-info {
+    min-width: 0;
+}
+
+.sidebar-user-info strong {
+    display: block;
+    font-size: 15px;
+    color: white;
+}
+
+.sidebar-user-info span {
+    display: block;
+    font-size: 12px;
+    color: #cbd5e1;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.sidebar-user-info small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: #93c5fd;
+}

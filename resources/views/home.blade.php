@@ -13,7 +13,7 @@
         </div>
 
         <div class="nav-buttons">
-            <a href="#" class="nav-btn">AFSPRAAK</a>
+            <a href="{{ route('afspraken.index') }}" class="nav-btn">AFSPRAAK</a>
             <a href="#" class="nav-btn">PRODUCTEN</a>
 
             @if(session('gebruiker_id'))
@@ -33,7 +33,7 @@
             <p>Maak een afspraak of<br>bestel je favoriete producten.</p>
 
             <div class="hero-buttons">
-                <a href="#" class="btn primary">📅 AFSPRAAK MAKEN</a>
+                <a href="{{ route('afspraken.create') }}" class="btn primary">📅 AFSPRAAK MAKEN</a>
                 <a href="#" class="btn white">🛍 PRODUCTEN SHOPPEN</a>
             </div>
         </div>
@@ -61,7 +61,7 @@
         </div>
     </section>
 
-    <a href="#" class="chat-button">💬</a>
+    <a href="{{ route('afspraken.create') }}" class="chat-button">📅</a>
 
 </div>
 @endsection
