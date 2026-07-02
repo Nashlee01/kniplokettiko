@@ -47,7 +47,7 @@
             </select>
 
             <label>Datum</label>
-            <input type="date" name="datum" value="{{ old('datum') }}" required>
+            <input type="date" name="datum" value="{{ old('datum') }}" min="{{ now()->addDay()->format('Y-m-d') }}" required>
 
             <label>Starttijd</label>
             <input type="time" name="starttijd" value="{{ old('starttijd') }}" required>
