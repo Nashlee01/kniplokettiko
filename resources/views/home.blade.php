@@ -61,7 +61,13 @@
         </div>
     </section>
 
-    <a href="{{ route('afspraken.create') }}" class="chat-button">📅</a>
+    @if(session('gebruiker_id') && in_array(session('gebruiker_rol'), ['Medewerker', 'Eigenaar', 'Receptionist']))
+        <a href="{{ route('afspraken.create') }}" class="chat-button">📅</a>
+    @elseif(session('gebruiker_id'))
+        <a href="{{ route('afspraken.index') }}" class="chat-button">📅</a>
+    @else
+        <a href="{{ route('login') }}" class="chat-button">📅</a>
+    @endif
 
 </div>
 @endsection
