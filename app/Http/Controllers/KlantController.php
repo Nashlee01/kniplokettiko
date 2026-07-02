@@ -189,6 +189,47 @@ class KlantController extends Controller
             ->with('success', 'Klant succesvol gewijzigd.');
     }
 
+    public function destroy(Klant $klant): RedirectResponse
+    {
+        $auth = $this->getAuthorizedUser();
+
+        if (!$auth['allowed']) {
+            return redirect()->route('home')->with('error', $auth['message']);
+        }
+
+        $afsprakenCount = DB::table('afspraken')
+            ->where('klant_id', $klant->id)
+            ->count();
+
+        if ($afsprakenCount > 0) {
+            return redirect()->route('klanten.index')
+                ->with('error', 'Deze klant kan niet worden verwijderd omdat er nog afspraken aan gekoppeld zijn');
+        }
+
+        try {
+            DB::transaction(function () use ($klant): void {
+                $klant->delete();
+            });
+
+            Log::info('Klant succesvol verwijderd.', [
+                'actor_gebruiker_id' => session('gebruiker_id'),
+                'klant_id' => $klant->id,
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('Klant verwijderen mislukt.', [
+                'actor_gebruiker_id' => session('gebruiker_id'),
+                'klant_id' => $klant->id,
+                'fout' => $exception->getMessage(),
+            ]);
+
+            return redirect()->route('klanten.index')
+                ->with('error', 'Er is iets misgegaan bij het verwijderen van de klant.');
+        }
+
+        return redirect()->route('klanten.index')
+            ->with('success', 'Klant succesvol verwijderd.');
+    }
+
     private function getAuthorizedUser(): array
     {
         $gebruikerId = session('gebruiker_id');

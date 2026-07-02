@@ -463,6 +463,10 @@ small {
     white-space: nowrap;
 }
 
+.action-inline-form {
+    display: inline;
+}
+
 .icon-btn {
     width: 32px;
     height: 32px;
@@ -501,6 +505,43 @@ small {
     gap: 12px;
     margin-top: 12px;
     flex-wrap: wrap;
+}
+
+.custom-pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.page-link {
+    min-width: 34px;
+    height: 34px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1e293b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.page-link.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.page-link.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+/* Defensive reset for default Laravel/Tailwind pagination icons when classes are missing. */
+nav[role="navigation"] svg {
+    width: 14px;
+    height: 14px;
 }
 
 .info-banner {

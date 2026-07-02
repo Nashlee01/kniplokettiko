@@ -83,7 +83,11 @@
                             </td>
                             <td class="actions-col">
                                 <a href="{{ route('klanten.edit', $klant->id) }}" class="icon-btn blue" title="Bewerken">✎</a>
-                                <button type="button" class="icon-btn red" disabled title="Verwijderen">🗑</button>
+                                <form action="{{ route('klanten.destroy', $klant->id) }}" method="POST" class="action-inline-form" onsubmit="return confirm('Weet je zeker dat je deze klant wilt verwijderen?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="icon-btn red" title="Verwijderen">🗑</button>
+                                </form>
                             </td>
                         </tr>
                     @empty
@@ -97,7 +101,29 @@
 
             <div class="card-footer-row">
                 <div>Toont {{ $klanten->firstItem() ?? 0 }} tot {{ $klanten->lastItem() ?? 0 }} van {{ $klanten->total() }} klanten</div>
-                <div>{{ $klanten->links() }}</div>
+                <div class="custom-pagination">
+                    @if($klanten->hasPages())
+                        @if($klanten->onFirstPage())
+                            <span class="page-link disabled">&lsaquo;</span>
+                        @else
+                            <a href="{{ $klanten->previousPageUrl() }}" class="page-link" aria-label="Vorige pagina">&lsaquo;</a>
+                        @endif
+
+                        @foreach($klanten->getUrlRange(1, $klanten->lastPage()) as $page => $url)
+                            @if($page == $klanten->currentPage())
+                                <span class="page-link active">{{ $page }}</span>
+                            @else
+                                <a href="{{ $url }}" class="page-link">{{ $page }}</a>
+                            @endif
+                        @endforeach
+
+                        @if($klanten->hasMorePages())
+                            <a href="{{ $klanten->nextPageUrl() }}" class="page-link" aria-label="Volgende pagina">&rsaquo;</a>
+                        @else
+                            <span class="page-link disabled">&rsaquo;</span>
+                        @endif
+                    @endif
+                </div>
             </div>
 
             <div class="info-banner">

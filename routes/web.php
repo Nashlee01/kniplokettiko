@@ -20,3 +20,4 @@ Route::get('/klanten/nieuw', [KlantController::class, 'create'])->name('klanten.
 Route::post('/klanten', [KlantController::class, 'store'])->name('klanten.store');
 Route::get('/klanten/{klant}/bewerken', [KlantController::class, 'edit'])->name('klanten.edit');
 Route::put('/klanten/{klant}', [KlantController::class, 'update'])->name('klanten.update');
+Route::delete('/klanten/{klant}', [KlantController::class, 'destroy'])->name('klanten.destroy');
