@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
+// Model voor klanten met een scope voor het overzicht inclusief JOIN op adressen.
 class Klant extends Model
 {
     use HasFactory;
@@ -20,6 +21,7 @@ class Klant extends Model
         'telefoon',
     ];
 
+    // Scope voor overzichtspagina: koppelt klant- en adresgegevens en ondersteunt zoeken.
     public function scopeForOverview(Builder $query, string $search = ''): Builder
     {
         $query

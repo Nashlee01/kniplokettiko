@@ -2,6 +2,7 @@
 
 @section('content')
 <div class="dashboard-shell">
+    {{-- Linker navigatie van het dashboard. --}}
     <aside class="dashboard-sidebar">
         <div class="brand-block">
             <div class="brand-logo">✂</div>
@@ -26,6 +27,7 @@
     </aside>
 
     <main class="dashboard-main">
+        {{-- Bovenbalk met globale acties. --}}
         <header class="dashboard-topbar">
             <a href="#" class="topbar-btn">AFSPRAAK</a>
             <a href="#" class="topbar-btn">PRODUCTEN</a>
@@ -36,6 +38,7 @@
         </header>
 
         <section class="content-card">
+            {{-- Formulier voor het aanmaken van een nieuwe klant. --}}
             <div class="card-header-row">
                 <h1>Nieuwe klant</h1>
                 <a href="{{ route('klanten.index') }}" class="secondary-card-btn">Terug naar overzicht</a>
@@ -45,6 +48,7 @@
                 <div class="error">{{ session('error') }}</div>
             @endif
 
+            {{-- Bij validatiefouten wordt de eerste melding getoond. --}}
             @if($errors->any())
                 <div class="error">{{ $errors->first() }}</div>
             @endif

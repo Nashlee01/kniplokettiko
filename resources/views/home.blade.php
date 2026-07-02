@@ -3,6 +3,7 @@
 @section('content')
 <div class="home-page">
 
+    {{-- Hoofdnavigatie met snelle link naar klantbeheer. --}}
     <nav class="home-navbar">
         <div class="logo">
             <span class="logo-icon">✂</span>
@@ -28,6 +29,7 @@
         </div>
     </nav>
 
+    {{-- Hero-sectie met primaire acties. --}}
     <section class="hero">
         <div class="hero-text">
             <h1>Jouw look,<br>onze passie.</h1>
@@ -40,6 +42,7 @@
         </div>
     </section>
 
+    {{-- USP-blokken onderaan de homepage. --}}
     <section class="feature-bar">
         <div class="feature">
             <span>👤</span>

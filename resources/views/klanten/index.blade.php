@@ -2,6 +2,7 @@
 
 @section('content')
 <div class="dashboard-shell">
+    {{-- Linker navigatie van het dashboard. --}}
     <aside class="dashboard-sidebar">
         <div class="brand-block">
             <div class="brand-logo">✂</div>
@@ -26,6 +27,7 @@
     </aside>
 
     <main class="dashboard-main">
+        {{-- Bovenbalk met globale acties. --}}
         <header class="dashboard-topbar">
             <a href="#" class="topbar-btn">AFSPRAAK</a>
             <a href="#" class="topbar-btn">PRODUCTEN</a>
@@ -36,6 +38,7 @@
         </header>
 
         <section class="content-card">
+            {{-- Titel en actieknop voor nieuwe klant. --}}
             <div class="card-header-row">
                 <h1>Klant overzicht</h1>
                 <a href="{{ route('klanten.create') }}" class="primary-card-btn">+ NIEUWE KLANT</a>
@@ -49,11 +52,13 @@
                 <div class="error">{{ session('error') }}</div>
             @endif
 
+            {{-- Zoekveld voor filteren van klanten. --}}
             <form action="{{ route('klanten.index') }}" method="GET" class="filter-row">
                 <input type="text" name="q" value="{{ $search }}" placeholder="Zoek klant...">
                 <button type="submit" class="filter-btn">Zoeken</button>
             </form>
 
+            {{-- Overzichtstabel met klant- en adresgegevens. --}}
             <div class="table-wrap">
                 <table class="customer-table">
                     <thead>
@@ -99,6 +104,7 @@
                 </table>
             </div>
 
+            {{-- Paginatie en telinformatie onder de tabel. --}}
             <div class="card-footer-row">
                 <div>Toont {{ $klanten->firstItem() ?? 0 }} tot {{ $klanten->lastItem() ?? 0 }} van {{ $klanten->total() }} klanten</div>
                 <div class="custom-pagination">

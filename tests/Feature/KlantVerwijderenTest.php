@@ -4,6 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+// Bouwt per test een minimale testdatabase op voor klant verwijderen.
 beforeEach(function (): void {
     Schema::dropIfExists('afspraken');
     Schema::dropIfExists('adressen');
@@ -56,6 +57,7 @@ beforeEach(function (): void {
     });
 });
 
+// Ruimt de testtabellen na elke test op.
 afterEach(function (): void {
     Schema::dropIfExists('afspraken');
     Schema::dropIfExists('adressen');
@@ -64,6 +66,7 @@ afterEach(function (): void {
     Schema::dropIfExists('rollen');
 });
 
+// Scenario: klant zonder afspraken kan verwijderd worden.
 it('verwijdert klant succesvol en klant verdwijnt uit overzicht', function () {
     $medewerkerRoleId = DB::table('rollen')->insertGetId(['naam' => 'Medewerker']);
 
@@ -123,6 +126,7 @@ it('verwijdert klant succesvol en klant verdwijnt uit overzicht', function () {
     $overviewResponse->assertDontSee('Noah Jansen');
 });
 
+// Scenario: klant met afspraken mag niet verwijderd worden.
 it('blokkeert verwijderen wanneer klant nog afspraken heeft', function () {
     $medewerkerRoleId = DB::table('rollen')->insertGetId(['naam' => 'Medewerker']);
 

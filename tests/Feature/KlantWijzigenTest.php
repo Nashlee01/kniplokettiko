@@ -4,6 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+// Bouwt per test een minimale testdatabase op voor klant wijzigen.
 beforeEach(function (): void {
     Schema::dropIfExists('adressen');
     Schema::dropIfExists('klanten');
@@ -46,6 +47,7 @@ beforeEach(function (): void {
     });
 });
 
+// Ruimt de testtabellen na elke test op.
 afterEach(function (): void {
     Schema::dropIfExists('adressen');
     Schema::dropIfExists('klanten');
@@ -53,6 +55,7 @@ afterEach(function (): void {
     Schema::dropIfExists('rollen');
 });
 
+// Scenario: medewerker wijzigt klantgegevens succesvol.
 it('wijzigt klantgegevens succesvol en toont bijgewerkte gegevens', function () {
     $medewerkerRoleId = DB::table('rollen')->insertGetId(['naam' => 'Medewerker']);
 
@@ -134,6 +137,7 @@ it('wijzigt klantgegevens succesvol en toont bijgewerkte gegevens', function () 
     $overviewResponse->assertSee('sanne.lynn@test.nl');
 });
 
+// Scenario: ongeldig e-mailadres blokkeert update en toont foutmelding.
 it('toont melding bij ongeldig e-mailadres en slaat wijzigingen niet op', function () {
     $medewerkerRoleId = DB::table('rollen')->insertGetId(['naam' => 'Medewerker']);
 

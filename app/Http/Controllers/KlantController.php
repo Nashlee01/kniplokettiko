@@ -13,10 +13,13 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
+// Controller voor klantbeheer: overzicht, toevoegen, wijzigen en verwijderen.
 class KlantController extends Controller
 {
+    // Alleen deze rollen mogen klantbeheer gebruiken.
     private const ALLOWED_ROLES = ['Eigenaar', 'Medewerker'];
 
+    // Toont het klantenoverzicht met optionele zoekfilter.
     public function index(Request $request): View|RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -36,6 +39,7 @@ class KlantController extends Controller
         ]);
     }
 
+    // Toont het formulier om een nieuwe klant aan te maken.
     public function create(): View|RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -50,6 +54,7 @@ class KlantController extends Controller
         ]);
     }
 
+    // Slaat een nieuwe klant en bijbehorend adres op.
     public function store(Request $request): RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -71,6 +76,7 @@ class KlantController extends Controller
         }
 
         try {
+            // Klant en adres worden in een transactie opgeslagen om halve writes te voorkomen.
             DB::transaction(function () use ($request): void {
                 $klant = Klant::create([
                     'gebruiker_id' => null,
@@ -111,6 +117,7 @@ class KlantController extends Controller
             ->with('success', 'Klant succesvol toegevoegd.');
     }
 
+    // Toont het bewerkformulier voor een bestaande klant.
     public function edit(Klant $klant): View|RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -131,6 +138,7 @@ class KlantController extends Controller
         ]);
     }
 
+    // Werkt een bestaande klant en het gekoppelde adres bij.
     public function update(Request $request, Klant $klant): RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -152,6 +160,7 @@ class KlantController extends Controller
         }
 
         try {
+            // Beide tabellen worden atomair bijgewerkt.
             DB::transaction(function () use ($request, $klant): void {
                 $klant->update([
                     'voornaam' => trim((string) $request->input('voornaam')),
@@ -205,6 +214,7 @@ class KlantController extends Controller
             ->with('success', 'Klant succesvol gewijzigd.');
     }
 
+    // Verwijdert een klant, tenzij er nog afspraken aan gekoppeld zijn.
     public function destroy(Klant $klant): RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -217,6 +227,7 @@ class KlantController extends Controller
             ->where('klant_id', $klant->id)
             ->count();
 
+        // Businessregel: klanten met afspraken mogen niet verwijderd worden.
         if ($afsprakenCount > 0) {
             return redirect()->route('klanten.index')
                 ->with('error', 'Deze klant kan niet worden verwijderd omdat er nog afspraken aan gekoppeld zijn');
@@ -246,6 +257,7 @@ class KlantController extends Controller
             ->with('success', 'Klant succesvol verwijderd.');
     }
 
+    // Controleert sessie en rolrechten voor klantbeheer.
     private function getAuthorizedUser(): array
     {
         $gebruikerId = session('gebruiker_id');
@@ -283,6 +295,7 @@ class KlantController extends Controller
         return ['allowed' => true];
     }
 
+    // Levert de data voor het overzicht op, met stored procedure fallback naar JOIN-query.
     private function loadKlantOverview(string $search, int $perPage): LengthAwarePaginator
     {
         // Gebruik de stored procedure als die beschikbaar is en er geen zoekterm is.
@@ -305,6 +318,7 @@ class KlantController extends Controller
             ->withQueryString();
     }
 
+    // Handmatige paginatie voor resultaten uit een stored procedure.
     private function paginateCollection(Collection $items, int $perPage): LengthAwarePaginator
     {
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
@@ -322,6 +336,7 @@ class KlantController extends Controller
         );
     }
 
+    // Centrale validatieregels voor create/update.
     private function validationRules(?int $ignoreKlantId = null): array
     {
         $emailRule = Rule::unique('klanten', 'email');
@@ -342,6 +357,7 @@ class KlantController extends Controller
         ];
     }
 
+    // Centrale foutmeldingen in het Nederlands voor de eindgebruiker.
     private function validationMessages(): array
     {
         return [

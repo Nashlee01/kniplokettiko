@@ -9,7 +9,7 @@ body {
     color: #0f172a;
 }
 
-/* HOME FULLSCREEN */
+/* HOME SCHERMVULLEND */
 .home-page {
     width: 100%;
     min-height: 100vh;
@@ -19,7 +19,7 @@ body {
     position: relative;
 }
 
-/* NAVBAR */
+/* NAVIGATIEBALK */
 .home-navbar {
     width: 100%;
     height: 85px;
@@ -76,7 +76,7 @@ body {
     cursor: pointer;
 }
 
-/* HERO */
+/* HERO-BLOK */
 .hero {
     width: 100%;
     min-height: calc(100vh - 230px);
@@ -132,7 +132,7 @@ body {
     color: #0f172a;
 }
 
-/* FEATURES */
+/* USP-BLOKKEN */
 .feature-bar {
     width: 100%;
     min-height: 170px;
@@ -170,7 +170,7 @@ body {
     font-size: 16px;
 }
 
-/* CHAT BUTTON */
+/* CHATKNOP */
 .chat-button {
     position: fixed;
     right: 35px;
@@ -188,7 +188,7 @@ body {
     z-index: 10;
 }
 
-/* LOGIN / REGISTER */
+/* INLOGGEN / REGISTREREN */
 .auth-page {
     min-height: 100vh;
     background: #eef4ff;
@@ -268,7 +268,7 @@ small {
     color: #dc2626;
 }
 
-/* DASHBOARD LAYOUT */
+/* DASHBOARD-STRUCTUUR */
 .dashboard-shell {
     min-height: 100vh;
     display: grid;
@@ -538,7 +538,7 @@ small {
     pointer-events: none;
 }
 
-/* Defensive reset for default Laravel/Tailwind pagination icons when classes are missing. */
+/* Veiligheidsreset voor standaard Laravel/Tailwind paginatie-iconen zonder classes. */
 nav[role="navigation"] svg {
     width: 14px;
     height: 14px;

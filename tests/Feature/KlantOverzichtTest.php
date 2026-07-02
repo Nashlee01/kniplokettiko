@@ -4,6 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+// Bouwt per test een minimale testdatabase op voor klantoverzicht.
 beforeEach(function (): void {
     Schema::dropIfExists('adressen');
     Schema::dropIfExists('klanten');
@@ -46,6 +47,7 @@ beforeEach(function (): void {
     });
 });
 
+// Ruimt de testtabellen na elke test op.
 afterEach(function (): void {
     Schema::dropIfExists('adressen');
     Schema::dropIfExists('klanten');
@@ -53,6 +55,7 @@ afterEach(function (): void {
     Schema::dropIfExists('rollen');
 });
 
+// Scenario: medewerker ziet alle geregistreerde klanten in het overzicht.
 it('toont alle geregistreerde klanten in het overzicht voor een medewerker', function () {
     $medewerkerRoleId = DB::table('rollen')->insertGetId(['naam' => 'Medewerker']);
 
@@ -119,6 +122,7 @@ it('toont alle geregistreerde klanten in het overzicht voor een medewerker', fun
     $response->assertSee('Mark Visser');
 });
 
+// Scenario: wanneer er geen klanten zijn, wordt een duidelijke melding getoond.
 it('toont melding wanneer er geen klanten geregistreerd zijn', function () {
     $medewerkerRoleId = DB::table('rollen')->insertGetId(['naam' => 'Medewerker']);
 
