@@ -281,6 +281,8 @@ small {
     background: #07162d;
     color: white;
     padding: 30px;
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar h2 {
@@ -307,6 +309,43 @@ small {
 .sidebar a:hover,
 .sidebar button:hover {
     background: #2563eb;
+}
+
+.sidebar-user {
+    margin-top: auto;
+    border: 1px solid #1e3a8a;
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.sidebar-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #1d4ed8;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.sidebar-user-info strong,
+.sidebar-user-info span,
+.sidebar-user-info small {
+    display: block;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.sidebar-user-info strong {
+    color: #ffffff;
+}
+
+.sidebar-user-info span {
+    color: #e2e8f0;
 }
 
 .dashboard-content {

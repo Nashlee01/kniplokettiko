@@ -10,7 +10,7 @@
             <a class="active" href="{{ route('afspraken.index') }}">Afspraken</a>
 
             @if(in_array(session('gebruiker_rol'), ['Medewerker', 'Eigenaar', 'Receptionist']))
-                <a href="#">Klanten</a>
+                <a href="{{ route('klanten.index') }}">Klanten</a>
                 <a href="#">Producten</a>
             @endif
         </nav>
