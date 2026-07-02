@@ -15,11 +15,13 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // Server-side validatie voor login.
         $request->validate([
             'email' => 'required|email',
             'wachtwoord' => 'required',
         ]);
 
+        // JOIN om ook de rolnaam van de gebruiker op te halen.
         $gebruiker = DB::table('gebruikers')
             ->join('rollen', 'gebruikers.rol_id', '=', 'rollen.id')
             ->select('gebruikers.*', 'rollen.naam as rol')
@@ -31,13 +33,16 @@ class AuthController extends Controller
             return back()->with('error', 'Gebruiker niet gevonden of account is geblokkeerd.');
         }
 
+        // Controleert het gehashte wachtwoord.
         if (!Hash::check($request->wachtwoord, $gebruiker->wachtwoord)) {
             return back()->with('error', 'E-mailadres of wachtwoord is onjuist.');
         }
 
+        // Gegevens opslaan in de sessie voor beveiliging en weergave in de sidebar.
         session([
             'gebruiker_id' => $gebruiker->id,
             'gebruiker_naam' => $gebruiker->naam,
+            'gebruiker_email' => $gebruiker->email,
             'gebruiker_rol' => $gebruiker->rol,
         ]);
 
@@ -52,6 +57,7 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // Validatie voor registratie.
         $request->validate([
             'naam' => 'required|string|max:100',
             'email' => 'required|email|unique:gebruikers,email',
@@ -59,7 +65,7 @@ class AuthController extends Controller
         ]);
 
         DB::table('gebruikers')->insert([
-            'rol_id' => 3, // Klant
+            'rol_id' => 3, // Standaard rol is Klant.
             'naam' => $request->naam,
             'email' => $request->email,
             'wachtwoord' => Hash::make($request->wachtwoord),
@@ -74,6 +80,7 @@ class AuthController extends Controller
 
     public function logout()
     {
+        // Sessie leegmaken bij uitloggen.
         session()->flush();
 
         return redirect()->route('home')
