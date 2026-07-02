@@ -1,0 +1,269 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #eef4ff;
+    color: #0f172a;
+}
+
+/* HOME FULLSCREEN */
+.home-page {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    background: #07162d;
+    overflow: hidden;
+    position: relative;
+}
+
+/* NAVBAR */
+.home-navbar {
+    width: 100%;
+    height: 85px;
+    background: #07162d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 65px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+}
+
+.logo-icon {
+    color: #2563eb;
+    font-size: 38px;
+}
+
+.logo strong {
+    display: block;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: white;
+}
+
+.logo small {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 11px;
+    color: white;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.nav-buttons form {
+    margin: 0;
+}
+
+.nav-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 16px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* HERO */
+.hero {
+    width: 100%;
+    min-height: calc(100vh - 230px);
+    background:
+        linear-gradient(to right, rgba(7, 22, 45, 0.70), rgba(7, 22, 45, 0.05)),
+        url("https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1600&q=80");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    padding-left: 9%;
+    color: white;
+}
+
+.hero-text {
+    max-width: 560px;
+}
+
+.hero h1 {
+    margin: 0 0 25px;
+    font-size: 72px;
+    line-height: 1.05;
+    font-weight: 800;
+}
+
+.hero p {
+    font-size: 24px;
+    line-height: 1.5;
+    margin-bottom: 36px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 22px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 19px 30px;
+    border-radius: 9px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.primary {
+    background: #2563eb;
+    color: white;
+}
+
+.white {
+    background: white;
+    color: #0f172a;
+}
+
+/* FEATURES */
+.feature-bar {
+    width: 100%;
+    min-height: 170px;
+    background: #07162d;
+    color: white;
+    border-radius: 45px 45px 0 0;
+    margin-top: -45px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 38px 90px;
+    gap: 25px;
+    position: relative;
+    z-index: 5;
+}
+
+.feature {
+    text-align: center;
+}
+
+.feature span {
+    width: 68px;
+    height: 68px;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    margin-bottom: 12px;
+}
+
+.feature p {
+    margin: 0;
+    line-height: 1.4;
+    font-size: 16px;
+}
+
+/* CHAT BUTTON */
+.chat-button {
+    position: fixed;
+    right: 35px;
+    bottom: 35px;
+    width: 62px;
+    height: 62px;
+    background: #2563eb;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 26px;
+    z-index: 10;
+}
+
+/* LOGIN / REGISTER */
+.auth-page {
+    min-height: 100vh;
+    background: #eef4ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-card {
+    width: 430px;
+    background: white;
+    border-radius: 18px;
+    padding: 35px;
+    box-shadow: 0 15px 40px rgba(15, 23, 42, 0.15);
+}
+
+.auth-card h1 {
+    margin: 0 0 10px;
+}
+
+.auth-card p {
+    margin-bottom: 25px;
+    color: #64748b;
+}
+
+.auth-card label {
+    display: block;
+    margin-top: 16px;
+    font-weight: bold;
+}
+
+.auth-card input {
+    width: 100%;
+    padding: 13px;
+    margin-top: 7px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+}
+
+.auth-card button {
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px;
+    background: #2563eb;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.auth-card a {
+    display: block;
+    margin-top: 18px;
+    text-align: center;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.success {
+    background: #dcfce7;
+    color: #166534;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+small {
+    color: #dc2626;
+}
