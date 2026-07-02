@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Afspraak;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -39,21 +40,8 @@ class AfspraakController extends Controller
                 if (!$klant) {
                     $afspraken = collect();
                 } else {
-                    $afspraken = DB::table('afspraken')
-                        ->join('klanten', 'afspraken.klant_id', '=', 'klanten.id')
-                        ->join('medewerkers', 'afspraken.medewerker_id', '=', 'medewerkers.id')
-                        ->join('afspraak_behandeling', 'afspraken.id', '=', 'afspraak_behandeling.afspraak_id')
-                        ->join('behandelingen', 'afspraak_behandeling.behandeling_id', '=', 'behandelingen.id')
-                        ->select(
-                            'afspraken.*',
-                            DB::raw("CONCAT(klanten.voornaam, ' ', klanten.achternaam) as klant"),
-                            DB::raw("CONCAT(medewerkers.voornaam, ' ', medewerkers.achternaam) as medewerker"),
-                            'behandelingen.naam as behandeling',
-                            'afspraak_behandeling.prijs'
-                        )
-                        ->where('afspraken.klant_id', $klant->id)
-                        ->orderBy('afspraken.datum')
-                        ->orderBy('afspraken.starttijd')
+                    $afspraken = Afspraak::query()
+                        ->forKlantOverview($klant->id)
                         ->get();
                 }
             }
@@ -105,30 +93,16 @@ class AfspraakController extends Controller
         ]);
 
         try {
-            $behandeling = DB::table('behandelingen')
-                ->where('id', $request->behandeling_id)
-                ->first();
-
-            // Afspraak opslaan.
-            $afspraakId = DB::table('afspraken')->insertGetId([
+            // Afspraak opslaan via model.
+            Afspraak::create([
                 'klant_id' => $request->klant_id,
                 'medewerker_id' => $request->medewerker_id,
+                'behandeling_id' => $request->behandeling_id,
                 'datum' => $request->datum,
                 'starttijd' => $request->starttijd,
                 'eindtijd' => $request->eindtijd,
-                'status' => 'gepland',
+                'status' => Afspraak::STATUS_GEPLAND,
                 'opmerking' => $request->opmerking,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // Behandeling koppelen aan afspraak via koppeltabel.
-            DB::table('afspraak_behandeling')->insert([
-                'afspraak_id' => $afspraakId,
-                'behandeling_id' => $request->behandeling_id,
-                'prijs' => $behandeling->prijs,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
             return redirect()->route('afspraken.index')
@@ -149,21 +123,8 @@ class AfspraakController extends Controller
         }
 
         try {
-            // JOINs voor volledige afspraakdetails.
-            $afspraak = DB::table('afspraken')
-                ->join('klanten', 'afspraken.klant_id', '=', 'klanten.id')
-                ->join('medewerkers', 'afspraken.medewerker_id', '=', 'medewerkers.id')
-                ->join('afspraak_behandeling', 'afspraken.id', '=', 'afspraak_behandeling.afspraak_id')
-                ->join('behandelingen', 'afspraak_behandeling.behandeling_id', '=', 'behandelingen.id')
-                ->select(
-                    'afspraken.*',
-                    'klanten.gebruiker_id as klant_gebruiker_id',
-                    DB::raw("CONCAT(klanten.voornaam, ' ', klanten.achternaam) as klant"),
-                    DB::raw("CONCAT(medewerkers.voornaam, ' ', medewerkers.achternaam) as medewerker"),
-                    'behandelingen.naam as behandeling',
-                    'behandelingen.duur',
-                    'afspraak_behandeling.prijs'
-                )
+            $afspraak = Afspraak::query()
+                ->forDetail()
                 ->where('afspraken.id', $id)
                 ->first();
 
@@ -195,11 +156,7 @@ class AfspraakController extends Controller
         }
 
         // Afspraak ophalen inclusief gekozen behandeling.
-        $afspraak = DB::table('afspraken')
-            ->join('afspraak_behandeling', 'afspraken.id', '=', 'afspraak_behandeling.afspraak_id')
-            ->select('afspraken.*', 'afspraak_behandeling.behandeling_id')
-            ->where('afspraken.id', $id)
-            ->first();
+        $afspraak = Afspraak::find($id);
 
         if (!$afspraak) {
             return redirect()->route('afspraken.index')
@@ -235,27 +192,23 @@ class AfspraakController extends Controller
         ]);
 
         try {
-            $behandeling = DB::table('behandelingen')
-                ->where('id', $request->behandeling_id)
-                ->first();
+            $afspraak = Afspraak::find($id);
 
-            // Afspraak wijzigen.
-            DB::table('afspraken')->where('id', $id)->update([
+            if (!$afspraak) {
+                return redirect()->route('afspraken.index')
+                    ->with('error', 'Afspraak niet gevonden.');
+            }
+
+            // Afspraak wijzigen via model.
+            $afspraak->update([
                 'klant_id' => $request->klant_id,
                 'medewerker_id' => $request->medewerker_id,
+                'behandeling_id' => $request->behandeling_id,
                 'datum' => $request->datum,
                 'starttijd' => $request->starttijd,
                 'eindtijd' => $request->eindtijd,
-                'status' => 'gewijzigd',
+                'status' => Afspraak::STATUS_GEWIJZIGD,
                 'opmerking' => $request->opmerking,
-                'updated_at' => now(),
-            ]);
-
-            // Gekoppelde behandeling wijzigen.
-            DB::table('afspraak_behandeling')->where('afspraak_id', $id)->update([
-                'behandeling_id' => $request->behandeling_id,
-                'prijs' => $behandeling->prijs,
-                'updated_at' => now(),
             ]);
 
             return redirect()->route('afspraken.index')
@@ -276,7 +229,7 @@ class AfspraakController extends Controller
         }
 
         try {
-            $afspraak = DB::table('afspraken')->where('id', $id)->first();
+            $afspraak = Afspraak::find($id);
 
             if (!$afspraak) {
                 return redirect()->route('afspraken.index')
@@ -284,12 +237,12 @@ class AfspraakController extends Controller
             }
 
             // Unhappy scenario: afspraak in behandeling mag niet verwijderd worden.
-            if ($afspraak->status === 'in behandeling') {
+            if (!$afspraak->magVerwijderen()) {
                 return redirect()->route('afspraken.index')
                     ->with('error', 'De afspraak kan niet worden verwijderd omdat deze al in behandeling is.');
             }
 
-            DB::table('afspraken')->where('id', $id)->delete();
+            $afspraak->delete();
 
             return redirect()->route('afspraken.index')
                 ->with('success', 'De afspraak is succesvol verwijderd.');
