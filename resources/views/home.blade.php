@@ -3,6 +3,7 @@
 @section('content')
 <div class="home-page">
 
+    {{-- Hoofdnavigatie met snelle link naar klantbeheer. --}}
     <nav class="home-navbar">
         <div class="logo">
             <span class="logo-icon">✂</span>
@@ -13,8 +14,9 @@
         </div>
 
         <div class="nav-buttons">
-            <a href="#" class="nav-btn">AFSPRAAK</a>
+            <a href="{{ route('afspraken.index') }}" class="nav-btn">AFSPRAAK</a>
             <a href="#" class="nav-btn">PRODUCTEN</a>
+            <a href="{{ route('klanten.index') }}" class="nav-btn">KLANTEN</a>
 
             @if(session('gebruiker_id'))
                 <form action="{{ route('logout') }}" method="POST">
@@ -27,18 +29,20 @@
         </div>
     </nav>
 
+    {{-- Hero-sectie met primaire acties. --}}
     <section class="hero">
         <div class="hero-text">
             <h1>Jouw look,<br>onze passie.</h1>
             <p>Maak een afspraak of<br>bestel je favoriete producten.</p>
 
             <div class="hero-buttons">
-                <a href="#" class="btn primary">📅 AFSPRAAK MAKEN</a>
+                <a href="{{ route('afspraken.create') }}" class="btn primary">📅 AFSPRAAK MAKEN</a>
                 <a href="#" class="btn white">🛍 PRODUCTEN SHOPPEN</a>
             </div>
         </div>
     </section>
 
+    {{-- USP-blokken onderaan de homepage. --}}
     <section class="feature-bar">
         <div class="feature">
             <span>👤</span>
@@ -61,7 +65,13 @@
         </div>
     </section>
 
-    <a href="#" class="chat-button">💬</a>
+    @if(session('gebruiker_id') && in_array(session('gebruiker_rol'), ['Medewerker', 'Eigenaar', 'Receptionist']))
+        <a href="{{ route('afspraken.create') }}" class="chat-button">📅</a>
+    @elseif(session('gebruiker_id'))
+        <a href="{{ route('afspraken.index') }}" class="chat-button">📅</a>
+    @else
+        <a href="{{ route('login') }}" class="chat-button">📅</a>
+    @endif
 
 </div>
 @endsection
