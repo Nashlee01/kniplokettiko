@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Gebruiker;
 use App\Models\Klant;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
@@ -81,11 +80,14 @@ class KlantController extends Controller
                     'telefoon' => trim((string) $request->input('telefoon')),
                 ]);
 
-                $klant->adres()->create([
+                DB::table('adressen')->insert([
+                    'klant_id' => $klant->id,
                     'straatnaam' => trim((string) $request->input('straatnaam')),
                     'huisnummer' => (int) $request->input('huisnummer'),
                     'postcode' => strtoupper(trim((string) $request->input('postcode'))),
                     'plaats' => trim((string) $request->input('plaats')),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             });
 
@@ -117,10 +119,13 @@ class KlantController extends Controller
             return redirect()->route('home')->with('error', $auth['message']);
         }
 
-        $klant->load('adres');
+        $adres = DB::table('adressen')
+            ->where('klant_id', $klant->id)
+            ->first();
 
         return view('klanten.edit', [
             'klant' => $klant,
+            'adres' => $adres,
             'gebruikerNaam' => (string) session('gebruiker_naam', ''),
             'gebruikerRol' => (string) session('gebruiker_rol', ''),
         ]);
@@ -160,12 +165,23 @@ class KlantController extends Controller
                     'huisnummer' => (int) $request->input('huisnummer'),
                     'postcode' => strtoupper(trim((string) $request->input('postcode'))),
                     'plaats' => trim((string) $request->input('plaats')),
+                    'updated_at' => now(),
                 ];
 
-                if ($klant->adres) {
-                    $klant->adres->update($adresData);
+                $adresBestaat = DB::table('adressen')
+                    ->where('klant_id', $klant->id)
+                    ->exists();
+
+                if ($adresBestaat) {
+                    DB::table('adressen')
+                        ->where('klant_id', $klant->id)
+                        ->update($adresData);
                 } else {
-                    $klant->adres()->create($adresData);
+                    DB::table('adressen')->insert([
+                        ...$adresData,
+                        'klant_id' => $klant->id,
+                        'created_at' => now(),
+                    ]);
                 }
             });
 
@@ -243,13 +259,14 @@ class KlantController extends Controller
             ];
         }
 
-        $gebruiker = Gebruiker::query()
-            ->with('rol')
-            ->where('id', $gebruikerId)
-            ->where('actief', true)
+        $gebruiker = DB::table('gebruikers')
+            ->join('rollen', 'gebruikers.rol_id', '=', 'rollen.id')
+            ->select('gebruikers.id', 'rollen.naam as rol')
+            ->where('gebruikers.id', $gebruikerId)
+            ->where('gebruikers.actief', 1)
             ->first();
 
-        $rolNaam = $gebruiker?->rol?->naam;
+        $rolNaam = $gebruiker?->rol;
 
         if (!$gebruiker || !$rolNaam || !in_array($rolNaam, self::ALLOWED_ROLES, true)) {
             Log::warning('Toegang klantbeheer geweigerd: onvoldoende rechten.', [

@@ -75,22 +75,22 @@
 
                 <div>
                     <label for="straatnaam">Straatnaam</label>
-                    <input id="straatnaam" type="text" name="straatnaam" value="{{ old('straatnaam', $klant->adres->straatnaam ?? '') }}" maxlength="50" autocomplete="address-line1" required>
+                    <input id="straatnaam" type="text" name="straatnaam" value="{{ old('straatnaam', $adres->straatnaam ?? '') }}" maxlength="50" autocomplete="address-line1" required>
                 </div>
 
                 <div>
                     <label for="huisnummer">Huisnummer</label>
-                    <input id="huisnummer" type="number" name="huisnummer" value="{{ old('huisnummer', $klant->adres->huisnummer ?? '') }}" min="1" step="1" required>
+                    <input id="huisnummer" type="number" name="huisnummer" value="{{ old('huisnummer', $adres->huisnummer ?? '') }}" min="1" step="1" required>
                 </div>
 
                 <div>
                     <label for="postcode">Postcode</label>
-                    <input id="postcode" type="text" name="postcode" value="{{ old('postcode', $klant->adres->postcode ?? '') }}" maxlength="10" pattern="[0-9]{4}\s?[A-Za-z]{2}" autocomplete="postal-code" required>
+                    <input id="postcode" type="text" name="postcode" value="{{ old('postcode', $adres->postcode ?? '') }}" maxlength="10" pattern="[0-9]{4}\s?[A-Za-z]{2}" autocomplete="postal-code" required>
                 </div>
 
                 <div>
                     <label for="plaats">Plaats</label>
-                    <input id="plaats" type="text" name="plaats" value="{{ old('plaats', $klant->adres->plaats ?? '') }}" maxlength="50" autocomplete="address-level2" required>
+                    <input id="plaats" type="text" name="plaats" value="{{ old('plaats', $adres->plaats ?? '') }}" maxlength="50" autocomplete="address-level2" required>
                 </div>
 
                 <div class="form-actions">
