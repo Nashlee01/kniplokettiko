@@ -15,6 +15,7 @@
         <div class="nav-buttons">
             <a href="#" class="nav-btn">AFSPRAAK</a>
             <a href="#" class="nav-btn">PRODUCTEN</a>
+            <a href="{{ route('klanten.index') }}" class="nav-btn">KLANTEN</a>
 
             @if(session('gebruiker_id'))
                 <form action="{{ route('logout') }}" method="POST">

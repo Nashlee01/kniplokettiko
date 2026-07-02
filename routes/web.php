@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\KlantController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -13,3 +14,9 @@ Route::get('/registreren', [AuthController::class, 'showRegister'])->name('regis
 Route::post('/registreren', [AuthController::class, 'register'])->name('register.post');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/klanten', [KlantController::class, 'index'])->name('klanten.index');
+Route::get('/klanten/nieuw', [KlantController::class, 'create'])->name('klanten.create');
+Route::post('/klanten', [KlantController::class, 'store'])->name('klanten.store');
+Route::get('/klanten/{klant}/bewerken', [KlantController::class, 'edit'])->name('klanten.edit');
+Route::put('/klanten/{klant}', [KlantController::class, 'update'])->name('klanten.update');
