@@ -33,13 +33,14 @@ BEGIN
         a.starttijd,
         a.eindtijd,
         a.status,
-        b.prijs AS prijs,
+        ab.prijs AS prijs,
         a.opmerking
     FROM afspraken a
     INNER JOIN klanten k ON a.klant_id = k.id
     INNER JOIN medewerkers m ON a.medewerker_id = m.id
-    INNER JOIN behandelingen b ON a.behandeling_id = b.id
-    ORDER BY a.datum, a.starttijd;
+    INNER JOIN afspraak_behandeling ab ON a.id = ab.afspraak_id
+    INNER JOIN behandelingen b ON ab.behandeling_id = b.id
+    ORDER BY a.id DESC;
 END $$
 
 DELIMITER ;

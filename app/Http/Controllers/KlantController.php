@@ -19,7 +19,13 @@ class KlantController extends Controller
     // Alleen deze rollen mogen klantbeheer gebruiken.
     private const ALLOWED_ROLES = ['Eigenaar', 'Medewerker'];
 
-    // Toont het klantenoverzicht met optionele zoekfilter.
+    // ================================================================
+    // INDEX: Klantenoverzicht met zoekfilter en paginatie
+    // ================================================================
+    // - Check autorisatie (alleen Eigenaar/Medewerker)
+    // - Haal zoekopdracht op uit query parameter ?q=
+    // - Load klanten (via stored procedure OR fallback naar JOINs)
+    // - Paginate resultaten (5 per pagina)
     public function index(Request $request): View|RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -39,7 +45,9 @@ class KlantController extends Controller
         ]);
     }
 
-    // Toont het formulier om een nieuwe klant aan te maken.
+    // ================================================================
+    // CREATE: Toon formulier voor nieuwe klant
+    // ================================================================
     public function create(): View|RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -54,7 +62,13 @@ class KlantController extends Controller
         ]);
     }
 
-    // Slaat een nieuwe klant en bijbehorend adres op.
+    // ================================================================
+    // STORE: Opslaan nieuwe klant + adres
+    // ================================================================
+    // - Autorisatiecheck (alleen Eigenaar/Medewerker)
+    // - Server-side validatie (alle velden verplicht + specifieke regels)
+    // - Database transactie (beide tabellen atomair)
+    // - Logging voor audit trail
     public function store(Request $request): RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -76,7 +90,10 @@ class KlantController extends Controller
         }
 
         try {
-            // Klant en adres worden in een transactie opgeslagen om halve writes te voorkomen.
+            // ================================================================
+            // TRANSACTIE: Zowel klant als adres moeten slagen
+            // ================================================================
+            // Als één fails, alles rollback (halve writes voorkomen)
             DB::transaction(function () use ($request): void {
                 $klant = Klant::create([
                     'gebruiker_id' => null,
@@ -102,6 +119,10 @@ class KlantController extends Controller
                 'klant_email' => trim((string) $request->input('email')),
             ]);
         } catch (\Throwable $exception) {
+            // ================================================================
+            // ERROR: Logging voor debugging
+            // ================================================================
+            // Log bevat: wie, wat, en foutmelding
             Log::error('Klant opslaan mislukt.', [
                 'actor_gebruiker_id' => session('gebruiker_id'),
                 'klant_email' => trim((string) $request->input('email')),
@@ -117,7 +138,12 @@ class KlantController extends Controller
             ->with('success', 'Klant succesvol toegevoegd.');
     }
 
-    // Toont het bewerkformulier voor een bestaande klant.
+    // ================================================================
+    // EDIT: Toon bewerkformulier voor bestaande klant
+    // ================================================================
+    // - Autorisatiecheck
+    // - Haal klant + bijbehorend adres op
+    // - Toon beide in formulier
     public function edit(Klant $klant): View|RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -138,7 +164,12 @@ class KlantController extends Controller
         ]);
     }
 
-    // Werkt een bestaande klant en het gekoppelde adres bij.
+    // ================================================================
+    // UPDATE: Wijzig bestaande klant + adres
+    // ================================================================
+    // - Validatie (email unique check ignoreert huidge klant)
+    // - Transactie (klant + adres atomair)
+    // - Logging voor audit trail
     public function update(Request $request, Klant $klant): RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -149,7 +180,7 @@ class KlantController extends Controller
 
         $validator = Validator::make(
             $request->all(),
-            $this->validationRules($klant->id),
+            $this->validationRules($klant->id),  // Pass ID om email-unique te ignoren
             $this->validationMessages()
         );
 
@@ -160,7 +191,9 @@ class KlantController extends Controller
         }
 
         try {
-            // Beide tabellen worden atomair bijgewerkt.
+            // ================================================================
+            // TRANSACTIE: Update klant + adres atomair
+            // ================================================================
             DB::transaction(function () use ($request, $klant): void {
                 $klant->update([
                     'voornaam' => trim((string) $request->input('voornaam')),
@@ -177,6 +210,12 @@ class KlantController extends Controller
                     'updated_at' => now(),
                 ];
 
+                // ============================================================
+                // ADRES: Bestaand UPDATE of nieuw INSERT
+                // ============================================================
+                // Controleer of adres al bestaat voor deze klant
+                // Zo ja: update bestaande record
+                // Zo nee: voeg nieuw record in
                 $adresBestaat = DB::table('adressen')
                     ->where('klant_id', $klant->id)
                     ->exists();
@@ -199,6 +238,9 @@ class KlantController extends Controller
                 'klant_id' => $klant->id,
             ]);
         } catch (\Throwable $exception) {
+            // ================================================================
+            // ERROR: Logging met context
+            // ================================================================
             Log::error('Klant bijwerken mislukt.', [
                 'actor_gebruiker_id' => session('gebruiker_id'),
                 'klant_id' => $klant->id,
@@ -214,7 +256,12 @@ class KlantController extends Controller
             ->with('success', 'Klant succesvol gewijzigd.');
     }
 
-    // Verwijdert een klant, tenzij er nog afspraken aan gekoppeld zijn.
+    // ================================================================
+    // DESTROY: Verwijder klant + gekoppeld adres
+    // ================================================================
+    // - Businessregel: Kan NIET als er afspraken gekoppeld zijn
+    // - Transactie (cascade delete via foreign key constraint)
+    // - Logging voor audit trail
     public function destroy(Klant $klant): RedirectResponse
     {
         $auth = $this->getAuthorizedUser();
@@ -223,6 +270,10 @@ class KlantController extends Controller
             return redirect()->route('home')->with('error', $auth['message']);
         }
 
+        // ================================================================
+        // BUSINESSREGEL: Klanten met afspraken niet verwijderen
+        // ================================================================
+        // Voorkomt orphaned afspraken records
         $afsprakenCount = DB::table('afspraken')
             ->where('klant_id', $klant->id)
             ->count();
@@ -234,6 +285,10 @@ class KlantController extends Controller
         }
 
         try {
+            // ================================================================
+            // TRANSACTIE: Delete klant (adres cascade delete automatisch)
+            // ================================================================
+            // Foreign key constraint zorgt dat adressen ook verwijderd worden
             DB::transaction(function () use ($klant): void {
                 $klant->delete();
             });
@@ -243,6 +298,9 @@ class KlantController extends Controller
                 'klant_id' => $klant->id,
             ]);
         } catch (\Throwable $exception) {
+            // ================================================================
+            // ERROR: Logging
+            // ================================================================
             Log::error('Klant verwijderen mislukt.', [
                 'actor_gebruiker_id' => session('gebruiker_id'),
                 'klant_id' => $klant->id,
@@ -257,7 +315,13 @@ class KlantController extends Controller
             ->with('success', 'Klant succesvol verwijderd.');
     }
 
-    // Controleert sessie en rolrechten voor klantbeheer.
+    // ================================================================
+    // getAuthorizedUser(): Check sessie + rol autorisatie
+    // ================================================================
+    // Returns: [allowed => bool, message => string]
+    // - Valideerd: gebruiker is ingelogd
+    // - Valideerd: gebruiker heeft juiste rol (Eigenaar/Medewerker)
+    // - Logs warnings als autorisatie denied
     private function getAuthorizedUser(): array
     {
         $gebruikerId = session('gebruiker_id');
@@ -298,9 +362,18 @@ class KlantController extends Controller
     // Levert de data voor het overzicht op, met stored procedure fallback naar JOIN-query.
     private function loadKlantOverview(string $search, int $perPage): LengthAwarePaginator
     {
-        // Gebruik de stored procedure als die beschikbaar is en er geen zoekterm is.
+        // ================================================================
+        // PRIORITY 1: Gebruik STORED PROCEDURE (performance + consistency)
+        // ================================================================
+        // - Alleen voor MySQL (niet voor SQLite tests)
+        // - Alleen als er GEEN zoekterm is (procedure handelt search niet af)
+        // - Procedure gebruikt INNER JOINs (veiliger dan loose JOINs)
         if ($search === '' && DB::getDriverName() === 'mysql') {
             try {
+                // sp_klanten_overzicht() uit database/sql/kniploket_setup.sql
+                // Deze procedure:
+                // - JOINs klanten met adressen
+                // - Returned alle klanten GESORTEERD OP ID DESC (NIEUWSTE EERST)
                 $rows = collect(DB::select('CALL sp_klanten_overzicht()'));
 
                 return $this->paginateCollection($rows, $perPage);
@@ -311,9 +384,14 @@ class KlantController extends Controller
             }
         }
 
+        // ================================================================
+        // FALLBACK: Laravel Query Builder (voor tests + searches)
+        // ================================================================
+        // Gebruikt de Klant model scope 'forOverview' voor searches
+        // Belangrijk: orderBy DESC zodat NIEUWSTE klanten EERST verschijnen
         return Klant::query()
             ->forOverview($search)
-            ->orderBy('klanten.id')
+            ->orderBy('klanten.id', 'desc')  // ← DESC = NIEUWSTE EERST
             ->paginate($perPage)
             ->withQueryString();
     }
@@ -361,16 +439,31 @@ class KlantController extends Controller
     private function validationMessages(): array
     {
         return [
-            'voornaam.required' => 'Vul alle verplichte velden in',
-            'achternaam.required' => 'Vul alle verplichte velden in',
-            'email.required' => 'Vul alle verplichte velden in',
-            'email.email' => 'Voer een geldig e-mailadres in',
+            'voornaam.required' => 'Voornaam is verplicht.',
+            'voornaam.string' => 'Voornaam moet tekst zijn.',
+            'voornaam.max' => 'Voornaam mag max 50 karakters zijn.',
+            'achternaam.required' => 'Achternaam is verplicht.',
+            'achternaam.string' => 'Achternaam moet tekst zijn.',
+            'achternaam.max' => 'Achternaam mag max 50 karakters zijn.',
+            'email.required' => 'E-mailadres is verplicht.',
+            'email.email' => 'Voer een geldig e-mailadres in.',
+            'email.max' => 'E-mailadres mag max 100 karakters zijn.',
             'email.unique' => 'Dit e-mailadres is al in gebruik.',
-            'telefoon.required' => 'Vul alle verplichte velden in',
-            'straatnaam.required' => 'Vul alle verplichte velden in',
-            'huisnummer.required' => 'Vul alle verplichte velden in',
-            'postcode.required' => 'Vul alle verplichte velden in',
-            'plaats.required' => 'Vul alle verplichte velden in',
+            'telefoon.required' => 'Telefoonnummer is verplicht.',
+            'telefoon.string' => 'Telefoonnummer moet tekst zijn.',
+            'telefoon.max' => 'Telefoonnummer mag max 20 karakters zijn.',
+            'straatnaam.required' => 'Straatnaam is verplicht.',
+            'straatnaam.string' => 'Straatnaam moet tekst zijn.',
+            'straatnaam.max' => 'Straatnaam mag max 50 karakters zijn.',
+            'huisnummer.required' => 'Huisnummer is verplicht.',
+            'huisnummer.integer' => 'Huisnummer moet een getal zijn.',
+            'huisnummer.min' => 'Huisnummer moet minstens 1 zijn.',
+            'postcode.required' => 'Postcode is verplicht.',
+            'postcode.string' => 'Postcode moet tekst zijn.',
+            'postcode.max' => 'Postcode mag max 10 karakters zijn.',
+            'plaats.required' => 'Plaats is verplicht.',
+            'plaats.string' => 'Plaats moet tekst zijn.',
+            'plaats.max' => 'Plaats mag max 50 karakters zijn.',
         ];
     }
 }

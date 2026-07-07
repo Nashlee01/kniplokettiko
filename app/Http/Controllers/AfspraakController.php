@@ -29,17 +29,30 @@ class AfspraakController extends Controller
 
         try {
             if ($this->isMedewerker()) {
-                // Stored procedure met JOINs voor alle afspraken.
-                $afspraken = collect(DB::select('CALL sp_afspraken_overzicht()'));
+                // ================================================================
+                // MEDEWERKER: Ziet ALLE afspraken
+                // ================================================================
+                // Gebruikt stored procedure sp_afspraken_overzicht()
+                // Deze procedure:
+                // - Joined afspraken + klanten + medewerkers + behandelingen
+                // - Toont alle afspraken GESORTEERD op ID DESC (NIEUWSTE EERST)
+                // - Returnt lege array als geen afspraken bestaan
+                $afspraken = Afspraak::getAllForOverview();
             } else {
-                // Klant ziet alleen eigen afspraken.
+                // ================================================================
+                // KLANT: Ziet ALLEEN eigen afspraken
+                // ================================================================
+                // Haal eerst het klanten record op (gekoppeld aan user via gebruiker_id)
                 $klant = DB::table('klanten')
                     ->where('gebruiker_id', session('gebruiker_id'))
                     ->first();
 
                 if (!$klant) {
+                    // Klant heeft geen profiel -> geen afspraken
                     $afspraken = collect();
                 } else {
+                    // Query afspraken VOOR deze klant (forKlantOverview scope)
+                    // Ook gesorteerd op ID DESC (nieuwste eerst)
                     $afspraken = Afspraak::query()
                         ->forKlantOverview($klant->id)
                         ->get();
@@ -48,7 +61,7 @@ class AfspraakController extends Controller
 
             return view('afspraken.index', compact('afspraken'));
         } catch (\Exception $e) {
-            // Technische fout opslaan in Laravel log.
+            // ERROR: Technische fout -> log + toon error view met lege lijst
             Log::error('Fout bij ophalen afspraken: ' . $e->getMessage());
 
             return view('afspraken.index', ['afspraken' => collect()])
@@ -73,12 +86,23 @@ class AfspraakController extends Controller
 
     public function store(Request $request)
     {
+        // ============================================================================
+        // AUTHORIZATION CHECK: Alleen medewerkers/eigenaren/receptionisten mogen afspraken toevoegen
+        // ============================================================================
         if (!$this->isMedewerker()) {
             return redirect()->route('afspraken.index')
                 ->with('error', 'Alleen medewerkers mogen afspraken toevoegen.');
         }
 
-        // Server-side validatie: voorkomt lege velden en verkeerde datum/tijd.
+        // ============================================================================
+        // SERVER-SIDE VALIDATION: Alle inputs controleren voordat we in de database schrijven
+        // ============================================================================
+        // Waarom: Voorkomt ongeldige data + beschermt tegen malicious input
+        // Validaties:
+        // - klant_id/medewerker_id/behandeling_id moeten bestaan in database (referential integrity)
+        // - datum moet in toekomst liggen (after:today)
+        // - eindtijd > starttijd (logische volgorde)
+        // Per veld specifieke Nederlandse foutmeldingen zodat de gebruiker precies weet wat fout is
         $request->validate([
             'klant_id' => 'required|exists:klanten,id',
             'medewerker_id' => 'required|exists:medewerkers,id',
@@ -87,31 +111,84 @@ class AfspraakController extends Controller
             'starttijd' => 'required',
             'eindtijd' => 'required|after:starttijd',
         ], [
-            'required' => 'Vul alle verplichte velden in.',
+            'klant_id.required' => 'Selecteer een klant.',
+            'klant_id.exists' => 'De geselecteerde klant bestaat niet.',
+            'medewerker_id.required' => 'Selecteer een medewerker.',
+            'medewerker_id.exists' => 'De geselecteerde medewerker bestaat niet.',
+            'behandeling_id.required' => 'Selecteer een behandeling.',
+            'behandeling_id.exists' => 'De geselecteerde behandeling bestaat niet.',
+            'datum.required' => 'Selecteer een datum.',
+            'datum.date' => 'Voer een geldige datum in.',
             'datum.after' => 'De afspraak moet minimaal één dag na vandaag ingepland worden.',
+            'starttijd.required' => 'Vul een starttijd in.',
+            'eindtijd.required' => 'Vul een eindtijd in.',
             'eindtijd.after' => 'De eindtijd moet later zijn dan de starttijd.',
         ]);
 
         try {
-            // Afspraak opslaan via model.
-            Afspraak::create([
+            // ================================================================
+            // STAP 1: Afspraak BASISGEGEVENS opslaan in 'afspraken' tabel
+            // ================================================================
+            // BELANGRIJK: We slaan GEEN behandeling_id op in afspraken tabel
+            // Reden: afspraken tabel heeft geen behandeling_id kolom
+            //        Treatment-data gaat naar de afspraak_behandeling KOPPELTABEL (many-to-many)
+            $afspraak = Afspraak::create([
                 'klant_id' => $request->klant_id,
                 'medewerker_id' => $request->medewerker_id,
-                'behandeling_id' => $request->behandeling_id,
                 'datum' => $request->datum,
                 'starttijd' => $request->starttijd,
                 'eindtijd' => $request->eindtijd,
-                'status' => Afspraak::STATUS_GEPLAND,
+                'status' => Afspraak::STATUS_GEPLAND,  // Nieuw record begint altijd als 'gepland'
                 'opmerking' => $request->opmerking,
             ]);
 
+            // ================================================================
+            // STAP 2: Haal volledige BEHANDELING record op (inclusief prijs)
+            // ================================================================
+            // We halen het volledige behandeling record op zodat we de PRIJS kunnen snapshot-en
+            // Dit is belangrijk: als de behandeling prijs later verandert, slaan we toch de
+            // ORIGINELE prijs op (audit trail / historische data)
+            $behandeling = DB::table('behandelingen')
+                ->where('id', $request->behandeling_id)
+                ->first();
+
+            if (!$behandeling) {
+                return back()->withInput()
+                    ->with('error', 'De geselecteerde behandeling bestaat niet.');
+            }
+
+            // ================================================================
+            // STAP 3: Link Afspraak + Behandeling in KOPPELTABEL
+            // ================================================================
+            // afspraak_behandeling is een JUNCTION TABLE (many-to-many):
+            // - Verbindt afspraken met behandelingen
+            // - Slaat PRIJS op op moment van afspraak (historische gegeven)
+            // - Timestamps voor audit trail (wie/wanneer bijgewerkt)
+            //
+            // Waarom aparte tabel? Omdat één afspraak later MEERDERE behandelingen
+            // kan hebben, en vice versa (flexibiliteit)
+            DB::table('afspraak_behandeling')->insert([
+                'afspraak_id' => $afspraak->id,
+                'behandeling_id' => $request->behandeling_id,
+                'prijs' => $behandeling->prijs,  // SNAPSHOT van prijs op DIT moment
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // SUCCESS: Terug naar overzicht met bevestigingsbericht
             return redirect()->route('afspraken.index')
                 ->with('success', 'Afspraak is succesvol toegevoegd.');
         } catch (\Exception $e) {
+            // ================================================================
+            // ERROR HANDLING: Iets ging fout
+            // ================================================================
+            // - Log naar Laravel logs (voor debugging/monitoring)
+            // - Return naar form MET originele input (user hoeft niet opnieuw in te vullen)
+            // - Toon SPECIFIEKE foutmelding (niet generiek) zodat user weet wat mis ging
             Log::error('Fout bij toevoegen afspraak: ' . $e->getMessage());
 
             return back()->withInput()
-                ->with('error', 'De afspraak kon niet worden toegevoegd.');
+                ->with('error', 'De afspraak kon niet worden toegevoegd. Fout: ' . $e->getMessage());
         }
     }
 
@@ -172,12 +249,13 @@ class AfspraakController extends Controller
 
     public function update(Request $request, int $id)
     {
+        // Autorisatiecheck: alleen medewerkers/eigenaren/receptionisten mogen wijzigen
         if (!$this->isMedewerker()) {
             return redirect()->route('afspraken.index')
                 ->with('error', 'Alleen medewerkers mogen afspraken wijzigen.');
         }
 
-        // Server-side validatie bij wijzigen.
+        // Server-side validatie: dezelfde checks als bij create (integriteit)
         $request->validate([
             'klant_id' => 'required|exists:klanten,id',
             'medewerker_id' => 'required|exists:medewerkers,id',
@@ -186,8 +264,17 @@ class AfspraakController extends Controller
             'starttijd' => 'required',
             'eindtijd' => 'required|after:starttijd',
         ], [
-            'required' => 'Vul alle verplichte velden in.',
+            'klant_id.required' => 'Selecteer een klant.',
+            'klant_id.exists' => 'De geselecteerde klant bestaat niet.',
+            'medewerker_id.required' => 'Selecteer een medewerker.',
+            'medewerker_id.exists' => 'De geselecteerde medewerker bestaat niet.',
+            'behandeling_id.required' => 'Selecteer een behandeling.',
+            'behandeling_id.exists' => 'De geselecteerde behandeling bestaat niet.',
+            'datum.required' => 'Selecteer een datum.',
+            'datum.date' => 'Voer een geldige datum in.',
             'datum.after' => 'De afspraak moet minimaal één dag na vandaag ingepland worden.',
+            'starttijd.required' => 'Vul een starttijd in.',
+            'eindtijd.required' => 'Vul een eindtijd in.',
             'eindtijd.after' => 'De eindtijd moet later zijn dan de starttijd.',
         ]);
 
@@ -199,17 +286,39 @@ class AfspraakController extends Controller
                     ->with('error', 'Afspraak niet gevonden.');
             }
 
-            // Afspraak wijzigen via model.
+            // STAP 1: Update BASISGEGEVENS van afspraak (ZONDER behandeling_id)
+            // Set status naar 'gewijzigd' om te tracken dat dit record is aangepast
             $afspraak->update([
                 'klant_id' => $request->klant_id,
                 'medewerker_id' => $request->medewerker_id,
-                'behandeling_id' => $request->behandeling_id,
                 'datum' => $request->datum,
                 'starttijd' => $request->starttijd,
                 'eindtijd' => $request->eindtijd,
-                'status' => Afspraak::STATUS_GEWIJZIGD,
+                'status' => Afspraak::STATUS_GEWIJZIGD,  // Mark als 'gewijzigd'
                 'opmerking' => $request->opmerking,
             ]);
+
+            // STAP 2: Haal nieuwe BEHANDELING op
+            // Gebruiker kan de behandeling switchen, dus halen we het volledige record op
+            $behandeling = DB::table('behandelingen')
+                ->where('id', $request->behandeling_id)
+                ->first();
+
+            if (!$behandeling) {
+                return back()->withInput()
+                    ->with('error', 'De geselecteerde behandeling bestaat niet.');
+            }
+
+            // STAP 3: Update KOPPELTABEL met nieuwe behandeling + prijs
+            // We UPDATE het bestaande record (niet opnieuw invoegen)
+            // Dit bewaart de audit trail (updated_at timestamp wijzigt)
+            DB::table('afspraak_behandeling')
+                ->where('afspraak_id', $id)
+                ->update([
+                    'behandeling_id' => $request->behandeling_id,
+                    'prijs' => $behandeling->prijs,  // Nieuwe prijs snapshot
+                    'updated_at' => now(),  // Tracking: wanneer was laatste wijziging
+                ]);
 
             return redirect()->route('afspraken.index')
                 ->with('success', 'De afspraak is succesvol gewijzigd.');
@@ -217,7 +326,7 @@ class AfspraakController extends Controller
             Log::error('Fout bij wijzigen afspraak: ' . $e->getMessage());
 
             return back()->withInput()
-                ->with('error', 'De afspraak kon niet worden gewijzigd.');
+                ->with('error', 'De afspraak kon niet worden gewijzigd. Fout: ' . $e->getMessage());
         }
     }
 

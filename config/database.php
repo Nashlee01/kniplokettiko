@@ -17,7 +17,13 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    // ================================================================
+    // Wissel van database door // te zetten voor de regel die je NIET wil
+    // ================================================================
+    // Happy scenario (met testdata):
+    // 'default' => 'db1',
+    // Unhappy scenario (lege database):
+     'default' => 'db2',
 
     /*
     |--------------------------------------------------------------------------
@@ -62,6 +68,40 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+        ],
+
+        // ================================================================
+        // DB1 → happy  (kniploket_tiko met testdata)
+        // DB2 → unhappy (kniploket_tiko_leeg zonder data → geeft [] terug)
+        //
+        // Zet // voor 'default' => 'db1' of 'default' => 'db2' bovenaan
+        // dit bestand om te wisselen
+        // ================================================================
+
+        'db1' => [
+            'driver'    => 'mysql',
+            'host'      => '127.0.0.1',
+            'port'      => '3306',
+            'database'  => 'kniploket_tiko',
+            'username'  => env('DB_USERNAME', 'root'),
+            'password'  => env('DB_PASSWORD', ''),
+            'charset'   => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix'    => '',
+            'strict'    => true,
+        ],
+
+        'db2' => [
+            'driver'    => 'mysql',
+            'host'      => '127.0.0.1',
+            'port'      => '3306',
+            'database'  => 'kniploket_tiko_leeg',
+            'username'  => env('DB_USERNAME', 'root'),
+            'password'  => env('DB_PASSWORD', ''),
+            'charset'   => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix'    => '',
+            'strict'    => true,
         ],
 
         'mariadb' => [

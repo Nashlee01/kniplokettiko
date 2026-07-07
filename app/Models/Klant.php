@@ -24,8 +24,14 @@ class Klant extends Model
     // Scope voor overzichtspagina: koppelt klant- en adresgegevens en ondersteunt zoeken.
     public function scopeForOverview(Builder $query, string $search = ''): Builder
     {
+        // ================================================================
+        // INNER JOIN: Haal ALLEEN klanten met adres-informatie
+        // ================================================================
+        // INNER JOIN: Elke klant MOET een adres hebben (store() voegt beiden in)
+        // Dit reflecteert de zakelijklogica en voorkomt NULL-waarden in templates
+        // Select specifieke kolommen (niet * om bandbreedte te sparen)
         $query
-            ->leftJoin('adressen', 'klanten.id', '=', 'adressen.klant_id')
+            ->join('adressen', 'klanten.id', '=', 'adressen.klant_id')
             ->select(
                 'klanten.id',
                 'klanten.voornaam',
@@ -40,6 +46,9 @@ class Klant extends Model
 
         $search = trim($search);
 
+        // ================================================================
+        // SEARCH: Filter op voornaam/achternaam/email/telefoon/adres
+        // ================================================================
         if ($search === '') {
             return $query;
         }

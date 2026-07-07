@@ -194,7 +194,7 @@ it('toont melding bij ongeldig e-mailadres en slaat wijzigingen niet op', functi
     $response->assertSessionHasInput('email', 'geen-geldig-email');
 
     $errors = session('errors');
-    expect($errors->first('email'))->toBe('Voer een geldig e-mailadres in');
+    expect($errors->first('email'))->toBe('Voer een geldig e-mailadres in.');
 
     $this->assertDatabaseHas('klanten', [
         'id' => $klantId,
