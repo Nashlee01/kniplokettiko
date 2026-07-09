@@ -424,8 +424,8 @@ class KlantController extends Controller
         }
 
         return [
-            'voornaam' => ['required', 'string', 'max:50'],
-            'achternaam' => ['required', 'string', 'max:50'],
+            'voornaam' => ['required', 'string', 'max:50', 'regex:/^[\pL][\pL\s\'-]*$/u'],
+            'achternaam' => ['required', 'string', 'max:50', 'regex:/^[\pL][\pL\s\'-]*$/u'],
             'email' => ['required', 'email', 'max:100', $emailRule],
             'telefoon' => ['required', 'string', 'max:20'],
             'straatnaam' => ['required', 'string', 'max:50'],
@@ -442,9 +442,11 @@ class KlantController extends Controller
             'voornaam.required' => 'Voornaam is verplicht.',
             'voornaam.string' => 'Voornaam moet tekst zijn.',
             'voornaam.max' => 'Voornaam mag max 50 karakters zijn.',
+            'voornaam.regex' => 'Voornaam mag alleen letters, spaties, apostrof en koppelteken bevatten en moet met een letter beginnen.',
             'achternaam.required' => 'Achternaam is verplicht.',
             'achternaam.string' => 'Achternaam moet tekst zijn.',
             'achternaam.max' => 'Achternaam mag max 50 karakters zijn.',
+            'achternaam.regex' => 'Achternaam mag alleen letters, spaties, apostrof en koppelteken bevatten en moet met een letter beginnen.',
             'email.required' => 'E-mailadres is verplicht.',
             'email.email' => 'Voer een geldig e-mailadres in.',
             'email.max' => 'E-mailadres mag max 100 karakters zijn.',

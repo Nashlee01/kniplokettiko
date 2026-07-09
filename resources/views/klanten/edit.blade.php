@@ -31,10 +31,10 @@
             @method('PUT')
 
             <label for="voornaam">Voornaam</label>
-            <input id="voornaam" type="text" name="voornaam" value="{{ old('voornaam', $klant->voornaam) }}" maxlength="50" autocomplete="given-name" required>
+            <input id="voornaam" type="text" name="voornaam" value="{{ old('voornaam', $klant->voornaam) }}" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ' -]*" title="Voornaam moet met een letter beginnen en mag alleen letters, spaties, apostrof en koppelteken bevatten" autocomplete="given-name" required>
 
             <label for="achternaam">Achternaam</label>
-            <input id="achternaam" type="text" name="achternaam" value="{{ old('achternaam', $klant->achternaam) }}" maxlength="50" autocomplete="family-name" required>
+            <input id="achternaam" type="text" name="achternaam" value="{{ old('achternaam', $klant->achternaam) }}" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ' -]*" title="Achternaam moet met een letter beginnen en mag alleen letters, spaties, apostrof en koppelteken bevatten" autocomplete="family-name" required>
 
             <label for="email">E-mail</label>
             <input id="email" type="email" name="email" value="{{ old('email', $klant->email) }}" maxlength="100" autocomplete="email" required>

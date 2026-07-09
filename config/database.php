@@ -21,9 +21,9 @@ return [
     // Wissel van database door // te zetten voor de regel die je NIET wil
     // ================================================================
     // Happy scenario (met testdata):
-    // 'default' => 'db1',
+      'default' => 'db1',
     // Unhappy scenario (lege database):
-     'default' => 'db2',
+     // 'default' => 'db2',
 
     /*
     |--------------------------------------------------------------------------
